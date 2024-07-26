@@ -72,7 +72,7 @@
  * @return success
 ******************************************************************************/
 int8_t adf4153_init(struct adf4153_dev **device,
-		    struct adf4153_init_param init_param)
+		    struct adf4153_init_param *init_param)
 {
 	struct adf4153_dev *dev;
 	int8_t status;
@@ -81,7 +81,7 @@ int8_t adf4153_init(struct adf4153_dev **device,
 	if (!dev)
 		return -1;
 
-	dev->adf4153_st = init_param.adf4153_st;
+	dev->adf4153_st = init_param->adf4153_st;
 
 	dev->adf4153_rfin_min_frq = 10000000;   // 10 Mhz
 	dev->adf4153_rfin_max_frq = 250000000;  // 250 Mhz
@@ -95,17 +95,17 @@ int8_t adf4153_init(struct adf4153_dev **device,
 	dev->r3 = 0;
 
 	/* CPHA = 1; CPOL = 0; */
-	status = no_os_spi_init(&dev->spi_desc, &init_param.spi_init);
+	status = no_os_spi_init(&dev->spi_desc, init_param->spi_init);
 
 	/* GPIO */
-	status |= no_os_gpio_get(&dev->gpio_le, &init_param.gpio_le);
-	status |= no_os_gpio_get(&dev->gpio_ce, &init_param.gpio_ce);
-	status |= no_os_gpio_get(&dev->gpio_le2, &init_param.gpio_le2);
-	status |= no_os_gpio_get(&dev->gpio_ce2, &init_param.gpio_ce2);
+	status |= no_os_gpio_get(&dev->gpio_le, init_param->gpio_le);
+	status |= no_os_gpio_get(&dev->gpio_ce, init_param->gpio_ce);
+	status |= no_os_gpio_get(&dev->gpio_le2, init_param->gpio_le2);
+	status |= no_os_gpio_get(&dev->gpio_ce2, init_param->gpio_ce2);
 
 	/* Bring CE high to put device to power up */
-	ADF4153_CE_OUT;
-	ADF4153_CE_HIGH;
+//	ADF4153_CE_OUT;
+//	ADF4153_CE_HIGH;
 	/* Initialize the load enable pin */
 	ADF4153_LE_OUT;
 	ADF4153_LE_LOW;
@@ -122,41 +122,41 @@ int8_t adf4153_init(struct adf4153_dev **device,
 	adf4153_update_latch(dev,
 			     ADF4153_CTRL_CONTROL |
 			     ADF4153_R2_COUNTER_RST(ADF4153_CR_ENABLED) |
-			     ADF4153_R2_CP_3STATE(dev->adf4153_st.cp_three_state) |
-			     ADF4153_R2_POWER_DOWN(dev->adf4153_st.power_down) |
-			     ADF4153_R2_LDP(dev->adf4153_st.ldp) |
-			     ADF4153_R2_PD_POL(dev->adf4153_st.pd_polarity) |
-			     ADF4153_R2_CP_CURRENT(dev->adf4153_st.cp_current) |
-			     ADF4153_R2_REF_DOUBLER(dev->adf4153_st.ref_doubler) |
-			     ADF4153_R2_RESYNC(dev->adf4153_st.resync)
+			     ADF4153_R2_CP_3STATE(dev->adf4153_st->cp_three_state) |
+			     ADF4153_R2_POWER_DOWN(dev->adf4153_st->power_down) |
+			     ADF4153_R2_LDP(dev->adf4153_st->ldp) |
+			     ADF4153_R2_PD_POL(dev->adf4153_st->pd_polarity) |
+			     ADF4153_R2_CP_CURRENT(dev->adf4153_st->cp_current) |
+			     ADF4153_R2_REF_DOUBLER(dev->adf4153_st->ref_doubler) |
+			     ADF4153_R2_RESYNC(dev->adf4153_st->resync)
 			    );
 	/* If resync feature is enabled */
-	if(init_param.adf4153_st.resync != 0x0) {
+	if(init_param->adf4153_st->resync != 0x0) {
 		/* Load the R divider register */
 		adf4153_update_latch(dev,
 				     ADF4153_CTRL_R_DIVIDER |
 				     ADF4153_R1_MOD(10) |    //Resync Delay
-				     ADF4153_R1_RCOUNTER(dev->adf4153_st.r_counter) |
-				     ADF4153_R1_PRESCALE(dev->adf4153_st.prescaler) |
-				     ADF4153_R1_MUXOUT(dev->adf4153_st.muxout) |
+				     ADF4153_R1_RCOUNTER(dev->adf4153_st->r_counter) |
+				     ADF4153_R1_PRESCALE(dev->adf4153_st->prescaler) |
+				     ADF4153_R1_MUXOUT(dev->adf4153_st->muxout) |
 				     ADF4153_R1_LOAD(ADF4153_LOAD_RESYNC)
 				    );
 	}
 	/* Load the R divider register */
 	adf4153_update_latch(dev,
 			     ADF4153_CTRL_R_DIVIDER |
-			     ADF4153_R1_MOD(dev->adf4153_st.mod_value) |
-			     ADF4153_R1_RCOUNTER(dev->adf4153_st.r_counter) |
-			     ADF4153_R1_PRESCALE(dev->adf4153_st.prescaler) |
-			     ADF4153_R1_MUXOUT(dev->adf4153_st.muxout) |
+			     ADF4153_R1_MOD(dev->adf4153_st->mod_value) |
+			     ADF4153_R1_RCOUNTER(dev->adf4153_st->r_counter) |
+			     ADF4153_R1_PRESCALE(dev->adf4153_st->prescaler) |
+			     ADF4153_R1_MUXOUT(dev->adf4153_st->muxout) |
 			     ADF4153_R1_LOAD(ADF4153_LOAD_NORMAL)
 			    );
 	/* Load the N divider register */
 	adf4153_update_latch(dev,
 			     ADF4153_CTRL_N_DIVIDER |
-			     ADF4153_R0_FRAC(dev->adf4153_st.frac_value) |
-			     ADF4153_R0_INT(dev->adf4153_st.int_value) |
-			     ADF4153_R0_FASTLOCK(dev->adf4153_st.fastlock)
+			     ADF4153_R0_FRAC(dev->adf4153_st->frac_value) |
+			     ADF4153_R0_INT(dev->adf4153_st->int_value) |
+			     ADF4153_R0_FASTLOCK(dev->adf4153_st->fastlock)
 			    );
 
 	/* Disable the counter reset in the Control Register */
@@ -290,7 +290,7 @@ uint32_t adf4153_tune_rcounter(struct adf4153_dev *dev,
 		      ADF4153_R2_REF_DOUBLER_OFFSET; // the actual reference doubler
 	do {
 		(*r_counter)++;
-		pfd_frequency = dev->adf4153_st.ref_in * \
+		pfd_frequency = dev->adf4153_st->ref_in * \
 				((float)(1 + ref_doubler) / (*r_counter));
 	} while(pfd_frequency > dev->adf4153_pfd_max_frq);
 
@@ -330,14 +330,14 @@ uint64_t adf4153_set_frequency(struct adf4153_dev *dev,
 	}
 
 	/* define the value of MOD */
-	mod_value = CEIL(dev->adf4153_st.ref_in,
-			 dev->adf4153_st.channel_spacing);
+	mod_value = CEIL(dev->adf4153_st->ref_in,
+			 dev->adf4153_st->channel_spacing);
 	/* if the mod_value is too high, increase the channel spacing */
 	if(mod_value > dev->adf4153_mod_max) {
 		do {
-			dev->adf4153_st.channel_spacing++;
-			mod_value = CEIL(dev->adf4153_st.ref_in,
-					 dev->adf4153_st.channel_spacing);
+			dev->adf4153_st->channel_spacing++;
+			mod_value = CEIL(dev->adf4153_st->ref_in,
+					 dev->adf4153_st->channel_spacing);
 		} while(mod_value <= dev->adf4153_mod_max);
 	}
 	/* define prescaler */
@@ -407,5 +407,5 @@ uint64_t adf4153_set_frequency(struct adf4153_dev *dev,
 *******************************************************************************/
 uint32_t adf4153_get_channel_spacing(struct adf4153_dev *dev)
 {
-	return dev->adf4153_st.channel_spacing;
+	return dev->adf4153_st->channel_spacing;
 }

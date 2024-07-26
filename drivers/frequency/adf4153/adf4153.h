@@ -340,7 +340,7 @@ struct adf4153_dev {
 	struct no_os_gpio_desc	*gpio_le2;
 	struct no_os_gpio_desc	*gpio_ce2;
 	/* Device Settings */
-	struct adf4153_settings_t adf4153_st;
+	struct adf4153_settings_t *adf4153_st;
 	/* RF input frequency limits */
 	uint32_t adf4153_rfin_min_frq;
 	uint32_t adf4153_rfin_max_frq;
@@ -361,14 +361,14 @@ struct adf4153_dev {
 
 struct adf4153_init_param {
 	/* SPI */
-	struct no_os_spi_init_param	spi_init;
+	struct no_os_spi_init_param	*spi_init;
 	/* GPIO */
-	struct no_os_gpio_init_param	gpio_le;
-	struct no_os_gpio_init_param	gpio_ce;
-	struct no_os_gpio_init_param	gpio_le2;
-	struct no_os_gpio_init_param	gpio_ce2;
+	struct no_os_gpio_init_param	*gpio_le;
+	struct no_os_gpio_init_param	*gpio_ce;
+	struct no_os_gpio_init_param	*gpio_le2;
+	struct no_os_gpio_init_param	*gpio_ce2;
 	/* Device Settings */
-	struct adf4153_settings_t adf4153_st;
+	struct adf4153_settings_t *adf4153_st;
 };
 
 /*****************************************************************************/
@@ -376,7 +376,7 @@ struct adf4153_init_param {
 /*****************************************************************************/
 /* Initialize the communication with the device */
 int8_t adf4153_init(struct adf4153_dev **device,
-		    struct adf4153_init_param init_param);
+		    struct adf4153_init_param *init_param);
 
 /* Free the resources allocated by adf4153_init(). */
 int32_t adf4153_remove(struct adf4153_dev *dev);

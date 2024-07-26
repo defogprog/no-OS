@@ -457,19 +457,20 @@ int32_t stm32_config_dma_and_start(struct no_os_spi_desc* desc,
 	struct stm32_dma_channel* sdma_rx = rx_ch->extra;
 	struct stm32_dma_channel* sdma_tx = tx_ch->extra;
 	SPI_TypeDef* SPIx = sdesc->hspi.Instance;
-	int ret;
+	int ret = -EINVAL;
 	uint8_t i;
 
 	if (!desc || !msgs)
 		return -EINVAL;
 
 	rx_ch_xfer = no_os_calloc(len, sizeof(*rx_ch_xfer));
-	if (!rx_ch_xfer)
-		return -ENOMEM;
+	if (!rx_ch_xfer) {
+		goto free_rx_ch_xfer;
+	}
 
 	tx_ch_xfer = no_os_calloc(len, sizeof(*tx_ch_xfer));
 	if (!tx_ch_xfer) {
-		goto free_rx_ch_xfer;
+		goto free_tx_ch_xfer;
 	}
 
 	for (i = 0; i < len; i++) {
@@ -477,7 +478,7 @@ int32_t stm32_config_dma_and_start(struct no_os_spi_desc* desc,
 #ifndef SPI_SR_TXE
 		tx_ch_xfer[i].dst = &(SPIx->TXDR);
 #else
-		tx_ch_xfer[i].dst = &(SPIx->DR);
+		tx_ch_xfer[i].dst = (uint8_t*)&(SPIx->DR);
 #endif
 		tx_ch_xfer[i].xfer_type = MEM_TO_DEV;
 		tx_ch_xfer[i].periph = NO_OS_DMA_IRQ;
@@ -487,7 +488,7 @@ int32_t stm32_config_dma_and_start(struct no_os_spi_desc* desc,
 #ifndef SPI_SR_RXNE
 		rx_ch_xfer[i].src = &(SPIx->RXDR);
 #else
-		rx_ch_xfer[i].src = &(SPIx->DR);
+		rx_ch_xfer[i].src = (uint8_t*)&(SPIx->DR);
 #endif
 		rx_ch_xfer[i].periph = NO_OS_DMA_IRQ;
 		rx_ch_xfer[i].xfer_type = DEV_TO_MEM;
